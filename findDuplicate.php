@@ -42,7 +42,7 @@ $planCount=array();
     $planCount[2]=0;
     $planCount[3]=0;
    include_once( "Sugarcrm.class.php" );
-    include_once( "LocalDB.class.php" );
+    //include_once( "LocalDB.class.php" );
 $success=true; //the success data
     $sc = new Sugarcrm();
         //$sc -> login();
@@ -54,9 +54,9 @@ $success=true; //the success data
         $sc = new Sugarcrm();
         $sc->login();
         // use local database
-        $db = new LocalDB();
-        $db -> readDB();
-        $localData = $db->data;
+        //$db = new LocalDB();
+        //$db -> readDB();
+        //$localData = $db->data;
 
 while (( $tempData = fgetcsv($handle, 1000, "\t")) !== FALSE && $count++ < $maxrow) {
     //var_dump($tempData);
@@ -112,20 +112,60 @@ while (( $tempData = fgetcsv($handle, 1000, "\t")) !== FALSE && $count++ < $maxr
                         $old = $result[1];
                     }
 
-                    echo $email." - found ".$dup_count." records\n".
-                    "old: ".$old->id->value." ".$old->date_entered->value."\n".
+                    echo $email." - found ".$dup_count." records\n";
+                    //echo "old: ".var_dump( $old );
+                    //echo "new: ".var_dump( $new );
+                    echo "old: ".$old->id->value." ".$old->date_entered->value."\n".
                     "new: ".$new->id->value." ".$new->date_entered->value."\n\n";
+                    $updatedata = 
+                    array(
+                        array(
+                            "name" => "id",
+                            "value" => $new->id->value
+                        ),
+                        array(
+                            "name" => "status",
+                            "value" => $old->status->value
+                        ),
+                        array(
+                            "name" => "package_purchased_c",
+                            "value" => $old->package_purchased_c->value
+                        ),
+                        array(
+                            "name" => "assigned_user_id",
+                            "value" => $old->assigned_user_id->value
+                        ),
+                        array(
+                            "name" => "utm_campaign_c",
+                            "value" => $old->utm_campaign_c->value
+                        ),
+                        array(
+                            "name" => "lead_source_description",
+                            "value" => $old->date_entered->value." created at Pre-Reg."
+                        )
+                        
+                    );
+                $deletedata = array(
+                    array(
+                        "name" => "id",
+                        "value" => $old->id->value
+                    ),
+                    array(
+                        "name" => "deleted",
+                        "value" => 1
+                    )
+                );
+                $sc->updateLead( array( $updatedata, $deletedata) );
                 } else{
-                    echo $email." - found 2+ records\n";
+                    echo $email." - found ".$dup_count." records\n";
                 }
+                
+                //echo $row.". find ". $email." - ".$lead_id." with plan ".$window_id." CRM id: ".$source."\n";
             }
-            //$lead_id = $sc->lead_id;
 
-            
-            
-            //$sc->updatePackage_UTM_Campaign ($lead_id, $window_id, $utm, CAMPAIGN_ID_SUBSCRIBER);
-            
-            //echo $row.". find ". $email." - ".$lead_id." with plan ".$window_id." CRM id: ".$source."\n";
+  
+ 
+            //
             $row++;   
         }
 fclose( $handle );

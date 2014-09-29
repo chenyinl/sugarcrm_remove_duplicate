@@ -153,9 +153,13 @@ class Sugarcrm{
             
                 'id',
                 'status',
-                'status_description',
+                //'status_description',
+                'assigned_user_name',
+                'assigned_user_id',
+                'date_entered',
                 'package_purchased_c', 
                 'date_modified',
+                'utm_campaign_c',
                 'date_entered'
             ),
 
@@ -233,8 +237,12 @@ class Sugarcrm{
             "name_value_list" => array()
         );
 
-        $login_result = $this->call("login", $login_parameters);
-        $this->session_id = $login_result->id;
+        $result = $this->call("login", $login_parameters);
+        if( !isset( $result->id )){
+            die( $result->name.": ".$result->description."\n" );
+            return false;
+        }
+        $this->session_id = $result->id;
         return true;
     }
 
@@ -335,6 +343,24 @@ class Sugarcrm{
         var_dump($set_entry_result );
         return true;
     }
+    public function updateLead( $updateData )
+    {
+       $set_entry_parameters = array(
+            //session id
+            "session" => $this->session_id,
+
+            //The name of the module from which to retrieve records.
+            "module_name" => "Leads",
+
+            //Record attributes
+            "name_value_list" => $updateData
+        );
+
+        $set_entry_result = $this->call("set_entries", $set_entry_parameters);
+        var_dump($set_entry_result );
+        return true;
+    }
+
     public function searchById( $id )
     {
         $get_entries_parameters = array(
@@ -369,7 +395,7 @@ class Sugarcrm{
             'track_view' => false,
         );
         $set_entry_result = $this->call("get_entries", $get_entries_parameters);
-        var_dump($set_entry_result);
+        //var_dump($set_entry_result);
         return true;
     }
 }
