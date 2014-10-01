@@ -1,2 +1,5 @@
 sugarcrm.config.php
 good*
+*.log
+*.csv
+*.sql

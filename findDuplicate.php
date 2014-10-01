@@ -6,8 +6,8 @@
 // 09/23/2014
 
 define("CAMPAIGN_ID_SUBSCRIBER", "1722198f-b731-240c-ab87-541c80da3b3c");
-if( !isset($argv[1]) || !isset($argv[2]) ){
-    echo "Missing file parameters.\nUsage:./findDuplicate.php Good.csv limit\n";
+if( !isset($argv[1]) || !isset($argv[2]) || !isset($argv[3])){
+    echo "Missing file parameters.\nUsage:./findDuplicate.php Good.csv start limit\n";
     die();
 }
 if( !is_file( $argv[1] ) ){
@@ -20,10 +20,18 @@ if( !( ((STRING)(INT)$argv[2] )== $argv[2])){
     exit();
 }
 
+if( !( ((STRING)(INT)$argv[3] )== $argv[3])){
+    echo "The third parameters ".$argv[3]." has to be integer; you put ".gettype($argv[3])."\n";
+    exit();
+}
+
 $filename = $argv[1];
 $maxrow = 100000;
-if( ( (INT)$argv[2] != -1 )){
-    $maxrow = $argv[2];
+$utime= microtime( true ); //unix time, to calculate the time
+
+$startRow = (INT)$argv[2];
+if( ( (INT)$argv[3] != -1 )){
+    $maxrow = $startRow + (INT)$argv[3];
 }
 // try to open file to read
 try{
@@ -59,6 +67,13 @@ $success=true; //the success data
         //$localData = $db->data;
 
 while (( $tempData = fgetcsv($handle, 1000, "\t")) !== FALSE && $count++ < $maxrow) {
+    if($count< $startRow) {
+        //echo "Skip ".$count." ";
+        continue;
+    }
+    if($count== $startRow) {
+        echo "Start from  ".$count."\n";
+    }
     //var_dump($tempData);
             if(!($tempData[0])) continue;
             list(
@@ -99,7 +114,9 @@ while (( $tempData = fgetcsv($handle, 1000, "\t")) !== FALSE && $count++ < $maxr
             }
             $result = $sc->searchDuplicate( $email );
             if($result === FALSE){
-                echo $email." - has only one record.\n\n";
+                $t = microtime( true )-$utime;
+                $utime=microtime( true );
+                echo $email." - has only one record - time: ".$t."\n";
             }else{
                 //var_dump($result);
                 $dup_count = count($result);
@@ -111,12 +128,39 @@ while (( $tempData = fgetcsv($handle, 1000, "\t")) !== FALSE && $count++ < $maxr
                         $new = $result[0];
                         $old = $result[1];
                     }
-
-                    echo $email." - found ".$dup_count." records\n";
+                    $t = microtime( true )-$utime;
+                    $utime=microtime( true );
+                    echo $email." - found ".$dup_count." records - time: ".$t."\n";
                     //echo "old: ".var_dump( $old );
                     //echo "new: ".var_dump( $new );
-                    echo "old: ".$old->id->value." ".$old->date_entered->value."\n".
-                    "new: ".$new->id->value." ".$new->date_entered->value."\n\n";
+                    //echo "old: ".$old->id->value." ".$old->date_entered->value."\n".
+                    //"new: ".$new->id->value." ".$new->date_entered->value."\n\n";
+
+                    if( isset( $new->package_purchased_c->value ) &&
+                       isset( $old->package_purchased_c->value ) &&
+                       strlen( $new->package_purchased_c->value )>0 &&
+                       strlen ( $old->package_purchased_c->value )>0 &&
+                       $new->package_purchased_c->value != $old->package_purchased_c->value
+                    ){
+                        echo( " * * * ".$email." - Both records has package purchased: ".
+                            $new->package_purchased_c->value." - ".$old->package_purchased_c->value."\n" );
+                        continue;
+                        //$old->package_purchased_c->value = $new->package_purchased_c->value;
+                    }
+
+                    if( isset( $new->utm_campaign_c->value ) && 
+                        isset( $old->utm_campaign_c->value ) &&
+                        strlen( $new->utm_campaign_c->value )>0 &&
+                        strlen ( $old->utm_campaign_c->value )>0 &&
+                        $old->utm_campaign_c->value != $new->utm_campaign_c->value
+                    ){
+                        echo( " * * * ".$email." - Both records has UTM code: ".
+                            $new->utm_campaign_c->value." - ".$old->utm_campaign_c->value."\n" );
+
+                        continue;
+                        //$old->utm_campaign_c->value = $new->utm_campaign_c->value;
+                    }
+
                     $updatedata = 
                     array(
                         array(
@@ -157,7 +201,7 @@ while (( $tempData = fgetcsv($handle, 1000, "\t")) !== FALSE && $count++ < $maxr
                 );
                 $sc->updateLead( array( $updatedata, $deletedata) );
                 } else{
-                    echo $email." - found ".$dup_count." records\n";
+                    echo " * * * ".$email." - found ".$dup_count." records\n";
                 }
                 
                 //echo $row.". find ". $email." - ".$lead_id." with plan ".$window_id." CRM id: ".$source."\n";

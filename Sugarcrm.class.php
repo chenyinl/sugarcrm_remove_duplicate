@@ -122,6 +122,50 @@ class Sugarcrm{
         }
         
     }    
+    public function searchCampaignStatus( $campaign_id ){
+        if(! $this->session_id) $this->login();
+        $get_entry_list_parameters = array(
+             //session id
+             'session' => $this->session_id,
+             //The name of the module from which to retrieve records
+             'module_name' => 'Leads',
+             //The SQL WHERE clause without the word "where".
+             'query' => "leads.status='Dead' AND leads.campaign_id='".$campaign_id."'",
+             //The SQL ORDER BY clause without the phrase "order by".
+             'order_by' => "",
+             //The record offset from which to start.
+             'offset' => 0,
+             //A list of fields to include in the results.
+             'select_fields' => array(
+                  'id'//,
+                  //'name',
+                  //'title',
+             ),
+             //A list of link names and the fields to be returned for each link name.
+             'link_name_to_fields_array' => array(
+                 array(
+                     'name' => 'email_addresses',
+                     'value' => array(
+                         'email_address',
+                         'opt_out',
+                         'primary_address'
+                     ),
+                 ),
+             ),
+             //The maximum number of results to return.
+             'max_results' => 5,
+             //If deleted records should be included in results.
+             'deleted' => 0,
+             //If only records marked as favorites should be returned.
+             'favorites' => false,
+        );
+
+        $search_by_module_result = $this->call('get_entries_count', $get_entry_list_parameters);
+        var_dump($search_by_module_result);
+        //var_dump( count($search_by_module_result->entry_list[0]));
+        
+        
+    }
     public function searchDuplicate( $string ){
         if(! $this->session_id) $this->login();
         $search_by_module_parameters = array(
@@ -357,7 +401,7 @@ class Sugarcrm{
         );
 
         $set_entry_result = $this->call("set_entries", $set_entry_parameters);
-        var_dump($set_entry_result );
+        //var_dump($set_entry_result );
         return true;
     }
 
