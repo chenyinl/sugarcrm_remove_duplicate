@@ -90,7 +90,8 @@ class Sugarcrm{
                 'id',
                 'status',
                 'status_description',
-                'package_purchased_c'
+                'package_purchased_c',
+                'utm_campaign_c'
             ),
 
             //If the search is to only search modules participating in the unified search.
@@ -102,7 +103,7 @@ class Sugarcrm{
         );
 
         $search_by_module_result = $this->call('search_by_module', $search_by_module_parameters);
-        var_dump($search_by_module_result);
+        //var_dump($search_by_module_result);
         //exit();
         $resultArray = $search_by_module_result->entry_list[0]->records;
         //var_dump($resultArray);
@@ -235,6 +236,66 @@ class Sugarcrm{
         }else{
             return false;
         }*/
+        
+    }    
+        public function searchByEmail( $string ){
+        if(! $this->session_id) $this->login();
+        $search_by_module_parameters = array(
+            //Session id
+            "session" => $this->session_id,
+
+            //The string to search for.
+            'search_string' => $string,
+
+            //The list of modules to query.
+            'modules' => array('Leads'),
+            //'modules' => 'Leads',
+
+            //The record offset from which to start.
+            'offset' => 0,
+
+            //The maximum number of records to return.
+            'max_results' => 10,
+
+            //Filters records by the assigned user ID.
+            //Leave this empty if no filter should be applied.
+            'id' => '',
+
+            //An array of fields to return.
+            //If empty the default return fields will be from the active listviewdefs.
+            //'select_fields' =>array(),
+            
+            'select_fields' => array(
+            
+                'id',
+                //'status',
+                //'status_description',
+                //'assigned_user_name',
+                //'assigned_user_id',
+                //'date_entered',
+                'package_purchased_c', 
+                //'date_modified',
+                'utm_campaign_c'
+                //'date_entered'
+            ),
+
+            //If the search is to only search modules participating in the unified search.
+            //Unified search is the SugarCRM Global Search alternative to Full-Text Search.
+            'unified_search_only' => false,
+
+            //If only records marked as favorites should be returned.
+            'favorites' => false
+        );
+
+        $search_by_module_result = $this->call('search_by_module', $search_by_module_parameters);
+        if(count($search_by_module_result->entry_list[0]->records)==1){
+            return ($search_by_module_result->entry_list[0]->records[0]);
+            //return true;
+        }else{
+            var_dump($search_by_module_result);
+            return FALSE;
+        }
+    
         
     }    
     private function call( $method, $parameters ){
@@ -401,7 +462,7 @@ class Sugarcrm{
         );
 
         $set_entry_result = $this->call("set_entries", $set_entry_parameters);
-        //var_dump($set_entry_result );
+        var_dump($set_entry_result );
         return true;
     }
 
