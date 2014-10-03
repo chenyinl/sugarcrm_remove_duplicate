@@ -162,6 +162,7 @@ class Sugarcrm{
                 'package_purchased_c', 
                 'date_modified',
                 'utm_campaign_c',
+                'campaign_id',
                 'date_entered'
             ),
 
@@ -174,7 +175,9 @@ class Sugarcrm{
         );
 
         $search_by_module_result = $this->call('search_by_module', $search_by_module_parameters);
+        //var_dump($search_by_module_result);
         if(count($search_by_module_result->entry_list[0]->records)>1){
+            //var_dump($search_by_module_result->entry_list[0]->records);
             return ($search_by_module_result->entry_list[0]->records);
             //return true;
         }else{
@@ -420,7 +423,7 @@ class Sugarcrm{
         );
 
         $set_entry_result = $this->call("set_entries", $set_entry_parameters);
-        var_dump($set_entry_result );
+        //var_dump($set_entry_result );
         return true;
     }
 
